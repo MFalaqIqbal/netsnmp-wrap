@@ -21,7 +21,6 @@ class Wrapper:
 
     @staticmethod
     def command_runner(args: list):
-        print(args)
         get_data = run(args=args, stdout=PIPE, stderr=PIPE)
         if get_data.returncode != 0:
             valid_snmp_output(cmd_out=get_data.stdout.decode('windows-1252'))
