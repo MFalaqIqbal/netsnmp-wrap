@@ -50,4 +50,3 @@ class Wrapper:
                 if args:
                     arguments.insert(1, args[0])
         return self.command_runner(args=arguments)
-
