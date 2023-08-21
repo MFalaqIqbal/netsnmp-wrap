@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from ipaddress import ip_address
-from exceptions import *
+from .exceptions import *
 
 
 @dataclass

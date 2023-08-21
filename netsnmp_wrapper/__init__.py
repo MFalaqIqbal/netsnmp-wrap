@@ -1,5 +1,5 @@
 from subprocess import run, PIPE
-from components import *
+from .components import *
 
 
 class Wrapper:
