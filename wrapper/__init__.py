@@ -1,15 +1,11 @@
+from os.path import abspath
 from subprocess import run, PIPE
-from components import *
-from components import SNMPv3, SNMPv2
+from wrapper.components import *
 
 
 class Wrapper:
-    @classmethod
-    def update_target(cls, address: str, snmp_creds):
-        cls.address = validate_ip(address)
-        cls.snmp = snmp_creds
 
-    def __init__(self, lib_location: str, snmp_creds: SNMPv2 | SNMPv3,
+    def __init__(self, snmp_creds: SNMPv2 | SNMPv3, lib_location: str = abspath('netsnmp-complied'),
                  address: str = '127.0.0.1', port: int = 161, timeout: int = 5, retries: int = 3):
         self.lib_location = lib_location
         self.address = validate_ip(address)
@@ -24,12 +20,15 @@ class Wrapper:
         get_data = run(args=args, stdout=PIPE, stderr=PIPE)
         if get_data.returncode != 0:
             valid_snmp_output(cmd_out=get_data.stdout.decode('windows-1252'))
+            return 'TimeOut'
         else:
-            pass
-        return get_data.stdout.decode('windows-1252')
+            return get_data.stdout.decode('windows-1252')
+
+    def update_target(self, address: str):
+        self.address = validate_ip(address)
 
     def execute(self, command: str, oid: str, *args: str):
-        arguments = ["-t", str(self.timeout), "-r", str(self.retries), "-v", self.address[0], oid]
+        arguments = ["-t", str(self.timeout), "-r", str(self.retries), "-O", "n", "-v", self.address[0], oid]
         support_commands = {
             'get': 'snmpget.exe',
             'walk': 'snmpwalk.exe',
@@ -42,9 +41,9 @@ class Wrapper:
             raise ValueError(f'Unsupported Command')
         else:
             if isinstance(self.snmp, SNMPv2):
-                arguments.insert(5, '2c')
-                arguments.insert(6, '-c')
-                arguments.insert(7, self.snmp.community)
+                arguments.insert(7, '2c')
+                arguments.insert(8, '-c')
+                arguments.insert(9, self.snmp.community)
                 arguments.insert(0, f"{self.lib_location}\\{support_commands[command]}")
                 if args:
                     arguments.insert(1, args[0])
