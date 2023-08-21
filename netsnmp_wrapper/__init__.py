@@ -1,11 +1,10 @@
-from os.path import abspath
 from subprocess import run, PIPE
-from wrapper.components import *
+from components import *
 
 
 class Wrapper:
 
-    def __init__(self, snmp_creds: SNMPv2 | SNMPv3, lib_location: str = abspath('netsnmp-complied'),
+    def __init__(self, snmp_creds: SNMPv2 | SNMPv3, lib_location: str,
                  address: str = '127.0.0.1', port: int = 161, timeout: int = 5, retries: int = 3):
         self.lib_location = lib_location
         self.address = validate_ip(address)
