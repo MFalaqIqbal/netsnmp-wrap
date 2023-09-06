@@ -1,3 +1,4 @@
+import re
 from subprocess import run, PIPE
 from .components import *
 
@@ -12,21 +13,40 @@ class Wrapper:
         self.port = port
         self.timeout = timeout
         self.retries = retries
+        self.parsing_regex = r"iso(.*?)(?=iso)|iso\.(.*?= OID:.*?)(?:\\r?\\n)"
         return
 
-    @staticmethod
-    def command_runner(args: list):
+    def sanitize_output(self, snmp_data):
+        matches = re.findall(self.parsing_regex, snmp_data, re.MULTILINE)
+        count = 0
+        output = []
+        while count < len(matches):
+            target = matches[count]
+            target = target[0].rstrip("\\r\\n")          # Remove the last \\r\\n chars
+            if ' = OID: ' in target:                     # Handling the OID type.
+                oid = f"{target}{matches[count + 1][0]}"
+                output.append(oid)
+                count = count + 1
+            else:
+                output.append(target)
+            count = count + 1
+        return output
+
+    def command_runner(self, args: list, sanitize: bool):
         get_data = run(args=args, stdout=PIPE, stderr=PIPE)
         if get_data.returncode != 0:
             valid_snmp_output(cmd_out=get_data.stdout.decode('windows-1252'))
             return 'TimeOut'
         else:
-            return get_data.stdout.decode('windows-1252')
+            if sanitize is True:
+                return self.sanitize_output(get_data.stdout.decode('windows-1252'))
+            else:
+                return get_data.stdout.decode('windows-1252')
 
     def update_target(self, address: str):
         self.address = validate_ip(address)
 
-    def execute(self, command: str, oid: str, *args: str):
+    def execute(self, command: str, oid: str, sanitize: bool, *args: str):
         arguments = ["-t", str(self.timeout), "-r", str(self.retries), "-O", "n", "-v", self.address[0], oid]
         support_commands = {
             'get': 'snmpget.exe',
@@ -48,4 +68,4 @@ class Wrapper:
                     arguments.insert(1, args[0])
             else:
                 raise ValueError(f'Unsupported SNMP Type')
-        return self.command_runner(args=arguments)
+        return self.command_runner(args=arguments, sanitize=sanitize)
