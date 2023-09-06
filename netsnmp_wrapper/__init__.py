@@ -46,4 +46,6 @@ class Wrapper:
                 arguments.insert(0, f"{self.lib_location}\\{support_commands[command]}")
                 if args:
                     arguments.insert(1, args[0])
+            else:
+                raise ValueError(f'Unsupported SNMP Type')
         return self.command_runner(args=arguments)

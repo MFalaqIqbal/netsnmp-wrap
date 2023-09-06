@@ -4,7 +4,7 @@ from netsnmp_wrapper import *
 
 def main():
     creds = SNMPv2('TEST')
-    collector = Wrapper(snmp_creds=creds, lib_location=abspath('.\\netsnmp-complied'))
+    collector = Wrapper(snmp_creds=creds, lib_location=abspath('..\\netsnmp-complied'))
     collector.update_target(address='192.168.100.10')
     data = collector.execute('walk', oid='1')
     file = open("dump.txt", "w")
